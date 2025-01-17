@@ -53,7 +53,7 @@
         <h3>Tags Needed for Merge</h3>
         <ul id="tags-list">
             <% tags.forEach(function(tag) { %>
-                <li><%= tag.display %></li>
+                <li name="<%= tag.tag %>"><%= tag.display %></li>
             <% }); %>
         </ul>
     </div>
@@ -61,7 +61,7 @@
         <h3>Blacklist Tags</h3>
         <ul id="blacklist-tags">
             <% tags.forEach(function(tag) { %>
-                <li><%= tag.display %></li>
+                <li name="<%= tag.tag %>"><%= tag.display %></li>
             <% }); %>
         </ul>
     </div><br>
@@ -107,10 +107,10 @@
             }
 
             const tagsNeeded = Array.from(document.querySelectorAll('#tags-list li.selected')).map(function(item) {
-                return item.textContent;
+                return item.getAttribute('name');
             });
             const tagsExcluded = Array.from(document.querySelectorAll('#blacklist-tags li.selected')).map(function(item) {
-                return item.textContent;
+                return item.getAttribute('name');
             });
 
             // Execute merge logic here with selectedSources, selectedMergeTo, tagsNeeded, and tagsExcluded
