@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= locals.track.track.name %> - Playlist Filter</title>
+    <link rel='stylesheet' href='/style.css' />
+    <style>
+        body {
+            text-align: center;
+        }
+        img {
+            width: 300px;
+            height: 300px;
+            object-fit: cover;
+        }
+        .controls {
+            margin-top: 30px;
+        }
+        button {
+            margin: 0 15px;
+            background: none;
+            border: none;
+        }
+        input[type="checkbox"] {
+            transform: scale(2);
+            accent-color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <h1><%= locals.track.track.name || 'Error' %></h1>
+    <h2><%= locals.track.track.artists.map(artist => artist.name).join(', ') %></h2>
+    <img src="<%= locals.track.track.album.images[0].url %>" alt="Song Image">
+    <div class="controls">
+        <button onclick="prevSong()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="50" height="50">
+            <path d="M19.496 4.136l-12 7a1 1 0 0 0 0 1.728l12 7a1 1 0 0 0 1.504 -.864v-14a1 1 0 0 0 -1.504 -.864z"></path>
+            <path d="M4 4a1 1 0 0 1 .993 .883l.007 .117v14a1 1 0 0 1 -1.993 .117l-.007 -.117v-14a1 1 0 0 1 1 -1z"></path>
+          </svg></button>
+        <button onclick="togglePlayPause()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="50" height="50" >
+            <path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z"></path>
+          </svg></button>
+        <button onclick="nextSong()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="50" height="50">
+            <path d="M3 5v14a1 1 0 0 0 1.504 .864l12 -7a1 1 0 0 0 0 -1.728l-12 -7a1 1 0 0 0 -1.504 .864z"></path>
+            <path d="M20 4a1 1 0 0 1 .993 .883l.007 .117v14a1 1 0 0 1 -1.993 .117l-.007 -.117v-14a1 1 0 0 1 1 -1z"></path>
+          </svg></button>
+    </div>
+
+    <div id='progressWrapper'  style="display: flex; align-items: center; justify-content: center; margin-top: 40px;">
+        <span id="currentTime">0:00</span>
+        <input type="range" id="progressBar" value="0" max="<%= locals.track.track.duration_ms %>" style="margin: 0 10px; width: 500px; accent-color: var(--accent-color);" onmouseup="seekTo(event)">
+        <span id="duration">0:00</span>
+    </div>
+
+    <div id='privateDisclaimer' style="display: none; align-items: center; justify-content: center; flex-direction: column; margin-top: 40px;">
+        <span style="color:red">Private Session. Song display might not be accurate. Play/Pause disabled</span><br>
+        <span style="color:red">You are still tagging the diplayed song!</span>
+    </div>
+
+    <div class="toggles" style="margin-top: 50px;font-size: 24px;display: flex;flex-wrap: nowrap;align-items: center;flex-direction: column;">
+        <% availableTags.forEach(function(tag) { %>
+            <label>
+                <input type="checkbox" id="<%= tag.tag %>" name="<%= tag.tag %>" <%= locals.tags.includes(tag.tag) ? 'checked' : '' %>>
+                <%= tag.display %>
+            </label>
+        <% }); %>
+    </div>
+
+    <button class="defaultbutton" onclick="submitTags()">Submit Tags</button>
+
+    <script>
+        function prevSong() {
+            submitTags();
+            window.location.href = "<%= '/tools/playlists/'+ locals.id + '/tag/' + (parseInt(locals.no)-1) %>";
+        }
+
+        function togglePlayPause() {
+            fetch('/api/pp', {
+                method: 'PUT'
+            })
+        }
+
+        function nextSong() {
+            submitTags();
+            window.location.href = "<%= '/tools/playlists/'+ locals.id + '/tag/' + (parseInt(locals.no)+1) %>";
+        }
+
+        function submitTags() {
+            const tags = [];
+            document.querySelectorAll('.toggles input[type="checkbox"]').forEach(checkbox => {
+                if (checkbox.checked) {
+                    tags.push(checkbox.name);
+                }
+            });
+            fetch('/tools/tag/<%= locals.track.track.id %>', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ tags })
+            });
+        }
+
+        function seekTo(event) {
+            fetch('/api/seekTo', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ position: event.target.value })
+            });
+        }
+
+        var songChangedFlag = false; 
+
+        function updateProgressBar() {
+            fetch('/api/progress')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('progressBar').value = data.position;
+                    document.getElementById('currentTime').innerText = millisToMinutesAndSeconds(data.position);
+                    if (data.id !== '<%= locals.track.track.id %>' && (data.linked_from_id !== '<%= locals.track.track.id %>' || data.linked_from_id === 'not linked')) {
+                        if (data.id == 'private') {
+                            document.getElementById('privateDisclaimer').style.display = 'flex';
+                            document.getElementById('progressWrapper').style.display = 'none';
+                        } else {
+                            if (songChangedFlag) {
+                                const redirectURL = "/tools/songs/" + data.id +"/tag";
+                                window.location.href = redirectURL;
+                            }
+                            songChangedFlag = true;
+                        }
+                    } else {
+                        document.getElementById('privateDisclaimer').style.display = 'none';
+                        document.getElementById('progressWrapper').style.display = 'flex';
+                    }
+                });
+        }
+
+        setInterval(updateProgressBar, 1000);
+
+        function millisToMinutesAndSeconds(millis) {
+        var minutes = Math.floor(millis / 60000);
+        var seconds = ((millis % 60000) / 1000).toFixed(0);
+        return (
+        seconds == 60 ?
+        (minutes+1) + ":00" :
+        minutes + ":" + (seconds < 10 ? "0" : "") + seconds
+        )};
+
+        document.getElementById('duration').innerText = millisToMinutesAndSeconds(<%=locals.track.track.duration_ms%>);
+
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+
+    </script>
+</body>
+<footer>
+    <button class="defaultbutton" onclick="submitTags(); window.location.href='/tools'" style="background-color: var(--warn-color); margin:0">Back to Tools</button>
+</footer>
+</html>

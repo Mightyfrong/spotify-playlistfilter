@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merge - Playlist Filter</title>
+    <link rel='stylesheet' href='/style.css' />
+    <style>
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .column {
+            width: 45%;
+        }
+        .playlist {
+            list-style-type: none;
+            padding: 0;
+        }
+        .tags, .blacklist {
+            margin: 20px;
+            margin-left: 0;
+            display: inline-block;
+        }
+        .selected {
+            background-color: var(--accent-color);
+        }
+        ul li {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="column">
+            <h2>Source Playlists</h2>
+            <ul class="playlist" id="source-playlist">
+                <% items.forEach(function(playlist) { %>
+                    <li data-id="<%= playlist.id %>"><%= playlist.name %></li>
+                <% }); %>
+            </ul>
+        </div>
+        <div class="column">
+            <h2>Merge To Playlist</h2>
+            <ul class="playlist" id="merge-playlist">
+                <% items.forEach(function(playlist) { %>
+                    <li data-id="<%= playlist.id %>"><%= playlist.name %></li>
+                <% }); %>
+            </ul>
+        </div>
+    </div>
+    <div class="tags">
+        <h3>Tags Needed for Merge</h3>
+        <ul id="tags-list">
+            <% tags.forEach(function(tag) { %>
+                <li><%= tag.display %></li>
+            <% }); %>
+        </ul>
+    </div>
+    <div class="blacklist">
+        <h3>Blacklist Tags</h3>
+        <ul id="blacklist-tags">
+            <% tags.forEach(function(tag) { %>
+                <li><%= tag.display %></li>
+            <% }); %>
+        </ul>
+    </div><br>
+    <button class="defaultbutton" id="merge-button">Execute Merge</button>
+
+    <script>
+        document.querySelectorAll('#source-playlist li').forEach(function(item) {
+            item.addEventListener('click', function() {
+                item.classList.toggle('selected');
+            });
+        });
+
+        document.querySelectorAll('#merge-playlist li').forEach(function(item) {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('#merge-playlist li').forEach(function(el) {
+                    el.classList.remove('selected');
+                });
+                item.classList.add('selected');
+            });
+        });
+
+        document.querySelectorAll('#tags-list li').forEach(function(item) {
+            item.addEventListener('click', function() {
+                item.classList.toggle('selected');
+            });
+        });
+
+        document.querySelectorAll('#blacklist-tags li').forEach(function(item) {
+            item.addEventListener('click', function() {
+                item.classList.toggle('selected');
+            });
+        });
+
+        document.getElementById('merge-button').addEventListener('click', function() {
+            const selectedSources = Array.from(document.querySelectorAll('#source-playlist li.selected')).map(function(item) {
+                return item.getAttribute('data-id');
+            });
+            const selectedMergeTo = document.querySelector('#merge-playlist li.selected')?.getAttribute('data-id');
+
+            if (!selectedMergeTo) {
+                alert('Please select a merge target playlist.');
+                return;
+            }
+
+            const tagsNeeded = Array.from(document.querySelectorAll('#tags-list li.selected')).map(function(item) {
+                return item.textContent;
+            });
+            const tagsExcluded = Array.from(document.querySelectorAll('#blacklist-tags li.selected')).map(function(item) {
+                return item.textContent;
+            });
+
+            // Execute merge logic here with selectedSources, selectedMergeTo, tagsNeeded, and tagsExcluded
+            console.log('Selected Sources:', selectedSources);
+            console.log('Selected Merge To:', selectedMergeTo);
+            console.log('Tags Needed:', tagsNeeded);
+            console.log('Blacklist Tags:', tagsExcluded);
+
+            fetch('/api/merge', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    playlists: selectedSources,
+                    mergeTo: selectedMergeTo,
+                    tagsNeeded: tagsNeeded,
+                    tagsExcluded: tagsExcluded
+                })
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data === 'Merged') {
+                    alert('Merge completed successfully.');
+                } else {
+                    alert('Merge failed. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+
+
+        });
+    </script>
+</body>
+<footer>
+    <button class="defaultbutton" onclick="window.location.href='/tools'" style="background-color: var(--warn-color); margin:0">Back to Tools</button>
+</footer>
+</html>

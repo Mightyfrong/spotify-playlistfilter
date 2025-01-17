@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlists - Playlist Filter</title>
+    <link rel='stylesheet' href='/style.css' />
+</head>
+<body>
+    <h1>Playlists</h1>
+    <ul>
+        <% items.forEach(function(playlist) { %>
+            <li>
+                <h2><%= playlist.name %></h2>
+                <img height="200px" src="<%= playlist.images? playlist.images[0].url : "https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A31BDF2/image-size/original?v=mpbl-1&px=-1" %>" alt="<%= playlist.name %>"><br>
+                <button class="defaultbutton" onclick="openPlaylist('<%= playlist.uri.replace('spotify:playlist:','') %>')">Open Playlist</button>
+            </li>
+        <% }); %>
+    </ul>
+</body>
+<footer>
+    <button class="defaultbutton" onclick="window.location.href='/tools'" style="background-color: var(--warn-color); margin:0">Back to Tools</button>
+</footer>
+
+<script>
+   function openPlaylist (id) {
+       window.location.href = '/tools/playlists/' + id;
+   }
+</script>
+</html>

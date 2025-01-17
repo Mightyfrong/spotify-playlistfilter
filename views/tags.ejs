@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tags - Playlist Filter</title>
+    <link rel='stylesheet' href='/style.css' />
+    <style>
+        input[type="text"] {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add/Delete Tags</h1>
+    <input type="text" id="tagName" placeholder="Tag Name" style="width:100px"/>
+    <input type="text" id="tagDisplay" placeholder="Tag Display" style="width:300px"/>
+    <button class="defaultbutton" onclick="addTag()">Add Tag</button><br>
+    <i>Songs will keep deleted tags. If you remember the tag name, you can add it back.</i>
+    <ul id="tags-list">
+        <% tags.forEach(function(tag) { %>
+            <li data-id="<%= tag.tag %>">
+                <%= tag.tag + " - " + tag.display %>
+                <button class="defaultbutton" onclick="deleteTag('<%= tag.tag %>')" style="background-color: var(--warn-color);">Delete</button>
+            </li>
+        <% }); %>
+    </ul>
+</body>
+<footer>
+    <button class="defaultbutton" onclick="window.location.href='/tools'" style="background-color: var(--warn-color); margin:0">Back to Tools</button>
+</footer>
+<script>
+    function addTag() {
+        const tagName = document.getElementById('tagName').value;
+        const tagDisplay = document.getElementById('tagDisplay').value;
+        fetch('/api/tags/add', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                tag: tagName,
+                display: tagDisplay
+            })
+        }).then(() => {
+            window.location.reload();
+        });
+    }
+
+    function deleteTag(tag) {
+        fetch('/api/tags/delete', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                tag: tag
+            })
+        }).then(() => {
+            window.location.reload();
+        });
+    }
+</script>
+</html>

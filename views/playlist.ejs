@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist - Playlist Filter</title>
+    <link rel='stylesheet' href='/style.css' />
+</head>
+<body>
+    <h1>Playlist</h1>
+    <button class="defaultbutton" onclick="startTagging()">Start Tagging From</button>
+    <input type="number" id="startTaggingNumber" min="1" max="<%= tracks.length %>" value="1" style="padding:10px"/>
+    <ol type="1">
+        <% tracks.forEach(function(track) { %>
+            <li>
+                <strong><%= track.track.name %></strong> by <%= track.track.artists.map(artist => artist.name).join(', ') %>
+            </li>
+        <% }); %>
+    </ol>
+</body>
+<footer>
+    <button class="defaultbutton" onclick="window.location.href='/tools'" style="background-color: var(--warn-color); margin:0">Back to Tools</button>
+</footer>
+<script>
+    function startTagging() {
+        const startTaggingNumber = document.getElementById('startTaggingNumber').value;
+        window.location.href = '/tools/playlists/<%= locals.id %>/tag/' + (parseInt(startTaggingNumber)-1);
+    }
+</script>
+</html>

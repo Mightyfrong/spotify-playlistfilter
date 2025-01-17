@@ -1,0 +1,34 @@
+:root {
+    --bg-color: rgb(18, 18, 18);
+    --fg-color: white;
+    --accent-color: rgb(30, 215, 96);
+    --warn-color: rgb(215, 30, 149);
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin-top: 50px;
+    background-color: var(--bg-color);
+    color: var(--fg-color);
+}
+
+.defaultbutton {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: var(--accent-color);
+    color: var(--fg-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    padding: 10px;
+    background-color: var(--accent-color);
+    color: var(--fg-color);
+    text-align: left;
+}

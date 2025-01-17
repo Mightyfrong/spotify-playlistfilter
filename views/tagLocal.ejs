@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Tracks not supported - Playlist Filter</title>
+    <link rel='stylesheet' href='/style.css' />
+</head>
+<body>
+    Local tracks are currently not suported.
+    <div>
+        <button class="defaultbutton" onclick="prevSong()">Previous Track</button>
+        <button class="defaultbutton" onclick="nextSong()">Next Track</button>
+    </div>
+</body>
+<footer>
+    <button class="defaultbutton" onclick="window.location.href='/tools'" style="background-color: var(--warn-color); margin:0">Back to Tools</button>
+</footer>
+<script>
+    function prevSong() {
+        window.location.href = "<%= '/tools/playlists/'+ locals.id + '/tag/' + (parseInt(locals.no)-1) %>";
+    }
+
+    function nextSong() {
+        window.location.href = "<%= '/tools/playlists/'+ locals.id + '/tag/' + (parseInt(locals.no)+1) %>";
+    }
+</script>
+</html>
