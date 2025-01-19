@@ -81,7 +81,7 @@ router.put('/seekTo', (req, res) => {
 router.get('/progress', (req, res) => {
     req.sapi.getMyCurrentPlaybackState({ market: 'DE' })
     .then(data => {
-        res.send({'position': data.body.progress_ms, 'id': data.body.item ? data.body.item.id : 'private', 'linked_from_id': data.body.item ? data.body.item.linked_from ? data.body.item.linked_from.id : 'not linked' : 'private'});
+        res.send({'position': data.body.progress_ms, 'id': data.body.item ? data.body.item.id : 'unknown', 'linked_from_id': data.body.item ? data.body.item.linked_from ? data.body.item.linked_from.id : 'not linked' : 'unknown', 'is_private_session': data.body.device.is_private_session});
     })
 });
 

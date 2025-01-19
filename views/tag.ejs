@@ -57,6 +57,11 @@
         <span style="color:red">You are still tagging the diplayed song!</span>
     </div>
 
+    <div id='availabilityDisclaimer' style="display: none; align-items: center; justify-content: center; flex-direction: column; margin-top: 40px;">
+        <span style="color:red">Song playback not avialable</span><br>
+        <span style="color:red">You are still tagging the diplayed song!</span>
+    </div>
+
     <div class="toggles" style="margin-top: 50px;font-size: 24px;display: flex;flex-wrap: nowrap;align-items: center;flex-direction: column;">
         <% availableTags.forEach(function(tag) { %>
             <label>
@@ -92,7 +97,7 @@
                     tags.push(checkbox.name);
                 }
             });
-            fetch('/tools/tag/<%= locals.track.track.id %>', {
+            fetch('/api/tag/<%= locals.track.track.id %>', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -120,10 +125,16 @@
                     document.getElementById('progressBar').value = data.position;
                     document.getElementById('currentTime').innerText = millisToMinutesAndSeconds(data.position);
                     if (data.id !== '<%= locals.track.track.id %>' && (data.linked_from_id !== '<%= locals.track.track.id %>' || data.linked_from_id === 'not linked')) {
-                        if (data.id == 'private') {
+                        if (data.is_private_session) {
+                            document.getElementById('availabilityDisclaimer').style.display = 'none';
                             document.getElementById('privateDisclaimer').style.display = 'flex';
                             document.getElementById('progressWrapper').style.display = 'none';
                         } else {
+                            if (data.id = 'unknown') {
+                                document.getElementById('availabilityDisclaimer').style.display = 'flex';
+                                document.getElementById('privateDisclaimer').style.display = 'none';
+                                document.getElementById('progressWrapper').style.display = 'none';
+                            } else
                             if (songChangedFlag) {
                                 const redirectURL = "/tools/songs/" + data.id +"/tag";
                                 window.location.href = redirectURL;
@@ -131,6 +142,7 @@
                             songChangedFlag = true;
                         }
                     } else {
+                        document.getElementById('availabilityDisclaimer').style.display = 'none';
                         document.getElementById('privateDisclaimer').style.display = 'none';
                         document.getElementById('progressWrapper').style.display = 'flex';
                     }

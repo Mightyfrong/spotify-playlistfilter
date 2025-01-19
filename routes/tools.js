@@ -49,9 +49,13 @@ router.get('/playlists/:id/tag/:no', (req, res) => {
         }
         req.sapi.getMyCurrentPlaybackState({ market: 'DE' })
         .then(data => {
-            if (data.body.is_playing && data.body.item.id == track.track.id) {
+            if (data.body.is_playing && (data.body.item.id == track.track.id || data.body.item.linked_from?.id == track.track.id)) {	
             } else {
             req.sapi.play({ uris: [track.track.uri] })
+            .then(data => {
+                console.log('Play "' + track.track.name + '" | Status: ' + data.statusCode);
+                playCheck(track, req);
+            })
             .catch(err => {
                 console.log(err);
             });
@@ -110,6 +114,37 @@ async function getAllTracks(req, res, next) {
         console.log(err);
         res.status(500).send('Error fetching tracks');
     }
+}
+
+
+//Workaround for play call sometimes not working
+var checkTimeoutID = null;
+function playCheck(track, req) {
+    clearTimeout(checkTimeoutID);
+    checkTimeoutID = setTimeout(() => {
+        req.sapi.getMyCurrentPlaybackState({ market: 'DE' })
+        .then(data => {
+            if (data.body.device.is_private_session) {
+                console.log('Checked: Private session');
+                return;
+            }
+            if (data.body.is_playing && (data.body.item.id == track.track.id || data.body.item.linked_from?.id == track.track.id)) {
+                console.log('Checked: Actually playing');
+            } else {
+                console.log('Checked: Not playing');
+                req.sapi.play({ uris: [track.track.uri] })
+                .then(data => {
+                    console.log('Retry "' + track.track.name + '" | Status: ' + data.statusCode);
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    }, 1000);
 }
 
 

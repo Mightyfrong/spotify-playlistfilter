@@ -16,7 +16,7 @@
     <input type="text" id="tagName" placeholder="Tag Name" style="width:100px"/>
     <input type="text" id="tagDisplay" placeholder="Tag Display" style="width:300px"/>
     <button class="defaultbutton" onclick="addTag()">Add Tag</button><br>
-    <i>Songs will keep deleted tags. If you remember the tag name, you can add it back.</i>
+    <i>Songs will keep deleted tags untill you retag them. If you remember the tag name, you can add it back.</i>
     <ul id="tags-list">
         <% tags.forEach(function(tag) { %>
             <li data-id="<%= tag.tag %>">
