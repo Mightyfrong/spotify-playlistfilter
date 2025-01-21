@@ -107,6 +107,7 @@
         }
 
         function seekTo(event) {
+            document.getElementById('currentTime').innerText = millisToMinutesAndSeconds(event.target.value);
             fetch('/api/seekTo', {
                 method: 'PUT',
                 headers: {
@@ -116,12 +117,21 @@
             });
         }
 
-        var songChangedFlag = false; 
+        var songChangedFlag = false;
+        var isScrubbing = false;
+        var wasScrubbing = false; 
 
         function updateProgressBar() {
+            if (isScrubbing) return;
+
             fetch('/api/progress')
                 .then(response => response.json())
                 .then(data => {
+                    if (isScrubbing) return;
+                    if (wasScrubbing) {
+                        wasScrubbing = false;
+                        return;
+                    }
                     document.getElementById('progressBar').value = data.position;
                     document.getElementById('currentTime').innerText = millisToMinutesAndSeconds(data.position);
                     if (data.id !== '<%= locals.track.track.id %>' && (data.linked_from_id !== '<%= locals.track.track.id %>' || data.linked_from_id === 'not linked')) {
@@ -130,7 +140,7 @@
                             document.getElementById('privateDisclaimer').style.display = 'flex';
                             document.getElementById('progressWrapper').style.display = 'none';
                         } else {
-                            if (data.id = 'unknown') {
+                            if (data.id == 'unknown') {
                                 document.getElementById('availabilityDisclaimer').style.display = 'flex';
                                 document.getElementById('privateDisclaimer').style.display = 'none';
                                 document.getElementById('progressWrapper').style.display = 'none';
@@ -150,6 +160,15 @@
         }
 
         setInterval(updateProgressBar, 1000);
+
+        document.getElementById('progressBar').addEventListener('mousedown', function() {
+        isScrubbing = true;
+        wasScrubbing = true;
+        });
+
+        document.getElementById('progressBar').addEventListener('mouseup', function() {
+        isScrubbing = false;
+        });
 
         function millisToMinutesAndSeconds(millis) {
         var minutes = Math.floor(millis / 60000);
